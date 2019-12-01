@@ -49,7 +49,7 @@ class UserController extends ApiController
 
         $user = User::create($fields);
 
-        return $this->showOne($user) ;
+        return $this->showOne($user);
     }
 
     /**
@@ -206,10 +206,11 @@ class UserController extends ApiController
 
         return $this->showMessage("EL correo de verificación se ha reenviado");
     }
+
     /**
      * Register api
      *
-     * @return Response
+     * @return JsonResponse
      */
     public function register(Request $request)
     {
@@ -249,7 +250,7 @@ class UserController extends ApiController
     /**
      * Login api
      *
-     * @return Response
+     * @return JsonResponse
      */
     public function login()
     {
@@ -267,5 +268,11 @@ class UserController extends ApiController
         } else {
             return response()->json(['error' => 'Unauthorized'], 401);
         }
+    }
+
+    public function prueba()
+    {
+        dd(Auth::user()->can('users.create'));
+        return $this->showMessage('hola');
     }
 }

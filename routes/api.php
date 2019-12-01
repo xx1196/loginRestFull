@@ -33,5 +33,7 @@ Route::group(['middleware' => 'auth:api'], function () {
 
     Route::get('deactivatedUsers', 'API\UserController@deactivatedUsers');
 
+    Route::get('prueba', 'API\UserController@prueba')->middleware('permission:users.create');
+
     Route::get('users/{user}/resend', 'API\UserController@resend')->name('resend');
 });
