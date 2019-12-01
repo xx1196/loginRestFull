@@ -2,22 +2,39 @@
 
 namespace App;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Laravel\Passport\HasApiTokens;
 
+/**
+ * @method static create(array $fields)
+ */
 class User extends Authenticatable
 {
-    use Notifiable, HasApiTokens;
+    use Notifiable, SoftDeletes, HasApiTokens;
 
+    /*
+     * Constantes de estado
+     */
+    const USER_VERIFIED = '1';
+    const USER_NOT_VERIFIED = '0';
+    const USER_ADMIN = '1';
+    const USER_REGULAR = '0';
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name',
+        'email',
+        'password',
+        'verified',
+        'verified_token',
+        'admin',
     ];
 
     /**
@@ -26,7 +43,9 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
+        'verified_token',
     ];
 
     /**
@@ -37,4 +56,43 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    protected $dates = [
+        'deleted_at'
+    ];
+
+    public function isVerified()
+    {
+        return $this->verified === self::USER_VERIFIED;
+    }
+
+    public function isAdmin()
+    {
+        return $this->admin === self::USER_ADMIN;
+    }
+
+    public static function generateVerifiedToken()
+    {
+        return Str::random(40);
+    }
+
+    public function setNameAttribute($name)
+    {
+        $this->attributes['name'] = strtolower($name);
+    }
+
+    public function getNameAttribute($name)
+    {
+        return ucwords($name);
+    }
+
+    public function setEmailAttribute($email)
+    {
+        $this->attributes['email'] = strtolower($email);
+    }
+
+    public function setPasswordAttribute($password)
+    {
+        $this->attributes['password'] = Hash::make($password);
+    }
 }

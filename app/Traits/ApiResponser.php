@@ -67,4 +67,13 @@ trait ApiResponser
             $code
         );
     }
+
+    protected function showLoginInfo(array $loginData)
+    {
+        return $this->successResponse([
+            'data' => $loginData,
+        ],
+            200
+        );
+    }
 }
