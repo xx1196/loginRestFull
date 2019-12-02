@@ -36,7 +36,7 @@ class AppServiceProvider extends ServiceProvider
             },
                 100
             );
-        });*/
+        });
 
         User::updated(function (User $user) {
             if ($user->isDirty('email'))
@@ -45,6 +45,6 @@ class AppServiceProvider extends ServiceProvider
                 },
                     100
                 );
-        });
+        });*/
     }
 }

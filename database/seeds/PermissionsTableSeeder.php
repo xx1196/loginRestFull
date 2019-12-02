@@ -14,34 +14,37 @@ class PermissionsTableSeeder extends Seeder
      */
     public function run()
     {
+        $permissions = [
+            'users.index',
+            'users.show',
+            'users.store',
+            'users.update',
+            'users.destroy'
+        ];
         //Permission list
-        Permission::create(['name' => 'users.index']);
-        Permission::create(['name' => 'users.edit']);
-        Permission::create(['name' => 'users.show']);
-        Permission::create(['name' => 'users.create']);
-        Permission::create(['name' => 'users.destroy']);
+        foreach ($permissions as $permission) {
+            Permission::create(['name' => $permission]);
+        }
 
         //Admin
-        $admin = Role::create(['name' => 'Admin']);
+        $admin = Role::create(['name' => 'Administrador']);
 
-        $admin->givePermissionTo([
-            'users.index',
-            'users.edit',
-            'users.show',
-            'users.create',
-            'users.destroy'
-        ]);
+        $admin->givePermissionTo($permissions);
 
         //Guest
-        $guest = Role::create(['name' => 'Guest']);
+        $guest = Role::create(['name' => 'Auditor']);
 
         $guest->givePermissionTo([
-            'users.index',
-            'users.show'
+            $permissions[0],
+            $permissions[1]
         ]);
 
         //User Admin
-        $user = User::find(1); //Italo Morales
-        $user->assignRole('Admin');
+        $user = User::find(1); //Usuario Administrador
+        $user->assignRole('Administrador');
+
+        //Audit Admin
+        $user = User::find(2); //Usuario Auditplay
+        $user->assignRole('Auditor');
     }
 }

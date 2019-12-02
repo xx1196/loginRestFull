@@ -29,7 +29,6 @@ class UserUpdateRequest extends FormRequest
             'name' => 'min:6',
             'email' => 'email|unique:users,email,' . $user->id,
             'password' => 'min:6|confirmed',
-            'admin' => 'in:' . User::USER_ADMIN . ',' . User::USER_REGULAR,
         ];
     }
 
@@ -40,6 +39,7 @@ class UserUpdateRequest extends FormRequest
             'email.email' => 'El campo email tiene que ser un email valido: prueba@prueba.com',
             'email.unique' => 'Este email ya se encuentra asignado',
             'password.min' => 'El campo password tiene que miínimo de 6 caracteres',
+            'password.confirmed' => 'El campo password deben coincidir',
         ];
     }
 }

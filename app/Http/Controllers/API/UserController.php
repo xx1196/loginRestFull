@@ -18,6 +18,14 @@ use Illuminate\Support\Facades\Validator;
 class UserController extends ApiController
 {
 
+    function __construct()
+    {
+        $this->middleware('permission:users.index', ['only' => ['index']]);
+        $this->middleware('permission:users.show', ['only' => ['show']]);
+        $this->middleware('permission:users.store', ['only' => ['store']]);
+        $this->middleware('permission:users.update', ['only' => ['update']]);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -42,12 +50,7 @@ class UserController extends ApiController
      */
     public function store(UserStoreRequest $request)
     {
-        $fields = $request->all();
-        $fields['verified'] = User::USER_NOT_VERIFIED;
-        $fields['verified_token'] = User::generateVerifiedToken();
-        $fields['admin'] = User::USER_REGULAR;
-
-        $user = User::create($fields);
+        $user = User::create($request->all());
 
         return $this->showOne($user);
     }
@@ -76,21 +79,12 @@ class UserController extends ApiController
             $user->name = $request->name;
         }
 
-        if ($request->has('email') && $user->email != $request->email) {
-            $user->verified = User::USER_NOT_VERIFIED;
-            $user->verified_token = User::generateVerifiedToken();
+        if ($request->has('email')) {
             $user->email = $request->email;
         }
 
         if ($request->has('password')) {
             $user->password = $request->password;
-        }
-
-        if ($request->has('admin')) {
-            if (!$user->isVerified()) {
-                return $this->errorResponse('Unicamente los usuarios verificados pueden ser administradores', 409);
-            }
-            $user->admin = $request->admin;
         }
 
         if (!$user->isDirty()) {
@@ -107,7 +101,7 @@ class UserController extends ApiController
      *
      * @param User $user
      * @return JsonResponse
-     * @throws \Exception
+     * @throws Exception
      */
     public function destroy($user)
     {
@@ -137,7 +131,7 @@ class UserController extends ApiController
     /**
      * Display a listing of the resource.
      *
-     * @return User[]
+     * @return JsonResponse
      */
     public function deactivatedUsers()
     {
@@ -170,23 +164,6 @@ class UserController extends ApiController
 
     /**
      *
-     * change the verified value of a user who coins with his token.
-     *
-     * @param $token
-     * @return JsonResponse
-     */
-    public function verify($token)
-    {
-        $user = User::whereVerifiedToken($token)->firstOrFail();
-        $user->verified = User::USER_VERIFIED;
-        $user->verified_token = null;
-        $user->save();
-
-        return $this->showMessage("La cuenta ha sido verificada");
-    }
-
-    /**
-     *
      * resend the verification email.
      *
      * @param User $user
@@ -205,74 +182,5 @@ class UserController extends ApiController
         );
 
         return $this->showMessage("EL correo de verificación se ha reenviado");
-    }
-
-    /**
-     * Register api
-     *
-     * @return JsonResponse
-     */
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email',
-            'password' => 'required',
-            'c_password' => 'required|same:password',
-        ]);
-
-        if ($validator->fails()) {
-            $response = [
-                'success' => false,
-                'data' => 'Validation Error.',
-                'message' => $validator->errors()
-            ];
-            return response()->json($response, 404);
-        }
-
-        $fields = $request->all();
-        $fields['verified'] = User::USER_NOT_VERIFIED;
-        $fields['verified_token'] = User::generateVerifiedToken();
-        $fields['admin'] = User::USER_REGULAR;
-        $user = User::create($fields);
-        $success['token'] = $user->createToken('MyApp')->accessToken;
-        $success['name'] = $user->name;
-
-        $response = [
-            'success' => true,
-            'data' => $success,
-            'message' => 'User register successfully.'
-        ];
-
-        return response()->json($response, 200);
-    }
-
-    /**
-     * Login api
-     *
-     * @return JsonResponse
-     */
-    public function login()
-    {
-        if (Auth::attempt(['email' => request('email'), 'password' => request('password')])) {
-            $user = Auth::user();
-            $userTokens = $user->tokens()->whereRevoked(0)->get();
-            if ($userTokens) {
-                foreach ($userTokens as $token) {
-                    $token->revoke();
-                }
-            }
-            $success['token'] = $user->createToken('MyApp')->accessToken;
-
-            return response()->json(['success' => $success], 200);
-        } else {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
-    }
-
-    public function prueba()
-    {
-        dd(Auth::user()->can('users.create'));
-        return $this->showMessage('hola');
     }
 }

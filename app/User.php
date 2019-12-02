@@ -17,13 +17,6 @@ class User extends Authenticatable
 {
     use Notifiable, SoftDeletes, HasApiTokens, HasRoles;
 
-    /*
-     * Constantes de estado
-     */
-    const USER_VERIFIED = '1';
-    const USER_NOT_VERIFIED = '0';
-    const USER_ADMIN = '1';
-    const USER_REGULAR = '0';
     /**
      * The attributes that are mass assignable.
      *
@@ -33,9 +26,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'verified',
-        'verified_token',
-        'admin',
     ];
 
     /**

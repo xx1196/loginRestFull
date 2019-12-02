@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Seeder;
 use \Illuminate\Support\Facades\Hash;
+use App\User;
 
 class UsersTableSeeder extends Seeder
 {
@@ -12,7 +13,16 @@ class UsersTableSeeder extends Seeder
      */
     public function run()
     {
+        User::create([
+            'name' => 'Administrador',
+            'email' => 'admin@playtechla.com',
+            'password' => '123456'
+        ]);
 
-        factory(App\User::class, 7)->create();
+        User::create([
+            'name' => 'Auditor',
+            'email' => 'auditplay@playtechla.com',
+            'password' => '123456'
+        ]);
     }
 }
