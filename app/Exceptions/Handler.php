@@ -11,6 +11,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Exceptions\UnauthorizedException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -59,6 +60,9 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
+        if ($exception instanceof UnauthorizedException)
+            return $this->errorResponse('No estas autorizado, no te pases de listo... te vigilamos', 403);
+
         if ($exception instanceof ValidationException)
             return $this->convertValidationExceptionToResponse($exception, $request);
 
@@ -77,7 +81,7 @@ class Handler extends ExceptionHandler
             return $this->errorResponse('No posee permisos para esta acción', 403);
 
         if ($exception instanceof MethodNotAllowedHttpException)
-            return $this->errorResponse('No es valido este verbo HTTP para esta ruta', 405);
+            return $this->errorResponse('No es valido este verbo HTTP para esta ruta, los metodos soportados son: ' . $exception->getHeaders()['Allow'], 405);
 
         if ($exception instanceof HttpException)
             return $this->errorResponse($exception->getMessage(), $exception->getCode());
