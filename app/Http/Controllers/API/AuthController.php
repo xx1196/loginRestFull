@@ -14,12 +14,7 @@ class AuthController extends ApiController
 {
     public function register(UserStoreRequest $request)
     {
-        $fields = $request->all();
-        $fields['verified'] = User::USER_NOT_VERIFIED;
-        $fields['verified_token'] = User::generateVerifiedToken();
-        $fields['admin'] = User::USER_REGULAR;
-
-        $user = User::create($fields);
+        $user = User::create($request->all());
 
         return $this->showMessage("Bienvenido $user->name es un placer tenerte con nosotros");
     }
@@ -30,7 +25,7 @@ class AuthController extends ApiController
         $credentials = request(['email', 'password']);
 
         if (!Auth::attempt($credentials)) {
-            return $this->showMessage('No estas logueado en nuestros sistemas', 401);
+            return $this->showMessage('Credenciales incorrectas, intenta de nuevo', 401);
         }
 
         $tokenResult = $request->user()->createToken('Personal Access Token');
@@ -48,6 +43,8 @@ class AuthController extends ApiController
             'expires_at' => Carbon::parse(
                 $tokenResult->token->expires_at
             )->toDateTimeString(),
+            'roles' => auth()->user()->roles->pluck('name'),
+            'permissions' => auth()->user()->getAllPermissions()->pluck('name')
         ]);
     }
 
