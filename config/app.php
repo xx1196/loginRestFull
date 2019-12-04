@@ -165,6 +165,7 @@ return [
         /*
          * Package Service Providers...
          */
+	Barryvdh\Cors\ServiceProvider::class,
         SimpleSoftwareIO\QrCode\QrCodeServiceProvider::class,
         Spatie\Permission\PermissionServiceProvider::class,
         /*
