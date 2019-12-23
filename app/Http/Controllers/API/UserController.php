@@ -161,26 +161,4 @@ class UserController extends ApiController
 
         return $this->showOne($user, "El usuario $user->name se ha activado con éxito");
     }
-
-    /**
-     *
-     * resend the verification email.
-     *
-     * @param User $user
-     * @return JsonResponse
-     * @throws Exception
-     */
-    public function resend(User $user)
-    {
-        if ($user->isVerified())
-            return $this->errorResponse("el usuario $user->name ya está verificado", 409);
-
-        retry(5, function () use ($user) {
-            Mail::to($user)->send(new UserCreatedMail($user));
-        },
-            100
-        );
-
-        return $this->showMessage("EL correo de verificación se ha reenviado");
-    }
 }

@@ -52,16 +52,6 @@ class User extends Authenticatable
         'deleted_at'
     ];
 
-    public function isVerified()
-    {
-        return $this->verified === self::USER_VERIFIED;
-    }
-
-    public function isAdmin()
-    {
-        return $this->admin === self::USER_ADMIN;
-    }
-
     public static function generateVerifiedToken()
     {
         return Str::random(40);
