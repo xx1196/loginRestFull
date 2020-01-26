@@ -9,6 +9,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Exceptions\UnauthorizedException;
@@ -60,8 +61,11 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $exception)
     {
-        if ($exception instanceof UnauthorizedException)
-            return $this->errorResponse('No estas autorizado, no te pases de listo... te vigilamos', 403);
+        if ($exception instanceof ThrottleRequestsException) {
+            $limitRequest = $exception->getHeaders()['X-RateLimit-Limit'];
+            $retryAfter = $exception->getHeaders()['Retry-After'];
+            return $this->errorResponse("Demasiados intentos, solo puede hacer $limitRequest cada minuto, reintente en $retryAfter segundos", 429);
+        }
 
         if ($exception instanceof ValidationException)
             return $this->convertValidationExceptionToResponse($exception, $request);
@@ -87,9 +91,23 @@ class Handler extends ExceptionHandler
             return $this->errorResponse($exception->getMessage(), $exception->getCode());
 
         if ($exception instanceof QueryException) {
-            $code = $exception->errorInfo[1];
-            if ($code === 1451)
-                return $this->errorResponse('Este recurso ya esta relacionado con otros', 409);
+            switch ($exception->getCode()) {
+                case 1451:
+                    return $this->errorResponse('Este recurso ya esta relacionado con otros', 409);
+                    break;
+                case 2002:
+                    return $this->errorResponse('Error al conectar a la base de datos, asegurese de tener la conexion abierta');
+                    break;
+                case 1044:
+                    return $this->errorResponse('Acceso denegado, revise las credenciales');
+                    break;
+                case '42S02':
+                    return $this->errorResponse('Por favor corre las migraciones pertinentes a la BDD');
+                    break;
+                case 1045:
+                    return $this->errorResponse('Acceso denegado a la BDD');
+                    break;
+            }
         }
 
         if (!config('app.debug'))
@@ -97,7 +115,6 @@ class Handler extends ExceptionHandler
 
         return parent::render($request, $exception);
     }
-
     /**
      * Create a response object from the given validation exception.
      *
