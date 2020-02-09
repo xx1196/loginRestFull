@@ -25,8 +25,18 @@ class LoginRequest extends FormRequest
     {
         return [
             'email' => 'required|string|email',
-            'password' => 'required|string',
+            'password' => 'required|string|min:6',
             'remember_me' => 'boolean',
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'email.required' => 'El email es necesario',
+            'email.email' => 'Un email valido es prueba@dominio.com',
+            'password.required' => 'La contraseña es necesaria',
+            'password.min' => 'La contraseña debe tener minimo 6 caracteres',
         ];
     }
 }
